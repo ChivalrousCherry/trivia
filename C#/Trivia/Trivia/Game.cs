@@ -6,20 +6,9 @@ namespace Trivia
 {
     public class Game
     {
-        readonly int minPlayer = 2;
-        readonly int maxPlayer = 6;
-        readonly int nbQuestions = 50;
-        readonly int nbPlaces = 12;
-        readonly int nbCoinsToWin = 6;
+        Rules rules = new();
         private readonly List<Player> _players = new();
 
-        List<string> questionCategories = new List<string>
-        {
-            "Pop",
-            "Science",
-            "Sports",
-            "Rock"
-        };
         LinkedList<Question> questions = new();
         private int _currentPlayer;
         private Player currentPlayer = new("");
@@ -27,15 +16,15 @@ namespace Trivia
 
         public Game()
         {
-            questionCategories.ForEach(delegate (string category)
+            rules.QuestionCategories.ForEach(delegate (string category)
             {
-                questions.AddLast(new Question(category, nbQuestions));
+                questions.AddLast(new Question(category, rules.NbQuestions));
             });
         }
 
         public bool IsPlayable()
         {
-            return (HowManyPlayers() >= minPlayer);
+            return (HowManyPlayers() >= rules.MinPlayer);
         }
 
         // on peut supprimer le type de retour bool qui n'est jamais utilisé
@@ -44,7 +33,7 @@ namespace Trivia
             // dans l'exemple actuel on n'aura pas le cas
             // mais le fait de s'être libéré des tableaux a supprimé la limite de base des 6 joueurs
             // on la remet donc ici : si on a déjà le maxPlayer, on n'ajoute plus personne
-            if(_players.Count >= maxPlayer)
+            if(_players.Count >= rules.MaxPlayer)
             {
                 return;
             }
@@ -99,7 +88,7 @@ namespace Trivia
         private void MoveCurrentPlayer(int roll)
         {
             // le % nbPlaces simule un tour de plateau : on revient à la première case
-            currentPlayer.Place = (currentPlayer.Place + roll) % nbPlaces;
+            currentPlayer.Place = (currentPlayer.Place + roll) % rules.NbPlaces;
 
             Console.WriteLine(currentPlayer.Name
                 + "'s new location is "
@@ -109,7 +98,7 @@ namespace Trivia
         private void AskQuestion()
         {
             // calcule quelle est la catégorie de la case du joueur
-            int place = currentPlayer.Place % questionCategories.Count;
+            int place = currentPlayer.Place % rules.QuestionCategories.Count;
             Question currentQuestion = questions.ElementAt(place);
             Console.WriteLine("The category is " + currentQuestion.Type);
             Console.WriteLine(currentQuestion.AskQuestion());
@@ -130,7 +119,7 @@ namespace Trivia
                     + currentPlayer.Purse
                     + " Gold Coins.");
 
-            var winner = DidPlayerWin();
+            var winner = rules.DidPlayerWin(currentPlayer);
             SetNextPlayer();
 
             return !winner;
@@ -154,14 +143,6 @@ namespace Trivia
             return true;
         }
 
-
-        private bool DidPlayerWin()
-        {
-            // la condition de victoire est bien d'avoir nbCoinsToWin pièces
-            // il faut inverser l'ancienne logique pour être cohérent
-            // car le GameRunner attend un "not a winner"
-            return currentPlayer.Purse == nbCoinsToWin;
-        }
     }
 
 }
