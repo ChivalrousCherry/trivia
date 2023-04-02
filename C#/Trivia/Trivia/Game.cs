@@ -12,12 +12,7 @@ namespace Trivia
         readonly int nbPlaces = 12;
         readonly int nbCoinsToWin = 6;
         readonly int nbQuestionTypes = 4;
-        private readonly List<string> _players = new();
-
-        private readonly int[] _places;
-        private readonly int[] _purses;
-
-        private readonly bool[] _inPenaltyBox;
+        private readonly List<Player> _players = new();
 
         const string popType = "Pop";
         private readonly LinkedList<string> _popQuestions = new();
@@ -29,14 +24,11 @@ namespace Trivia
         private readonly LinkedList<string> _rockQuestions = new();
 
         private int _currentPlayer;
+        private Player currentPlayer;
         private bool _isGettingOutOfPenaltyBox;
 
         public Game()
         {
-            _places = new int[maxPlayer];
-            _purses = new int[maxPlayer];
-            _inPenaltyBox = new bool[maxPlayer];
-
             for (var i = 0; i < nbQuestions; i++)
             {
                 _popQuestions.AddLast(CreateQuestion(popType, i));
@@ -59,12 +51,17 @@ namespace Trivia
         // on peut supprimer le type de retour bool qui n'est jamais utilisé
         public void Add(string playerName)
         {
-            _players.Add(playerName);
-            _places[HowManyPlayers()] = 0;
-            _purses[HowManyPlayers()] = 0;
-            _inPenaltyBox[HowManyPlayers()] = false;
+            // dans l'exemple actuel on n'aura pas le cas
+            // mais le fait de s'être libéré des tableaux a supprimé la limite de base des 6 joueurs
+            // on la remet donc ici : si on a déjà le maxPlayer, on n'ajoute plus personne
+            if(_players.Count >= maxPlayer)
+            {
+                return;
+            }
+            Player p = new Player(playerName);
+            _players.Add(p);
 
-            Console.WriteLine(playerName + " was added");
+            Console.WriteLine(p.Name + " was added");
             Console.WriteLine("They are player number " + _players.Count);
         }
 
@@ -75,15 +72,16 @@ namespace Trivia
 
         public void Roll(int roll)
         {
-            Console.WriteLine(_players[_currentPlayer] + " is the current player");
+            currentPlayer = _players[_currentPlayer];
+            Console.WriteLine(currentPlayer.Name + " is the current player");
             Console.WriteLine("They have rolled a " + roll);
             bool canGetOut = roll % 2 != 0;
 
-            if (_inPenaltyBox[_currentPlayer])
+            if (currentPlayer.IsInPenaltyBox)
             {
                 _isGettingOutOfPenaltyBox = roll % 2 != 0;
                 string negation = _isGettingOutOfPenaltyBox ? "" : "not ";
-                Console.WriteLine(_players[_currentPlayer] + " is " 
+                Console.WriteLine(currentPlayer.Name + " is " 
                     + negation 
                     + "getting out of the penalty box");
                 if (!_isGettingOutOfPenaltyBox)
@@ -94,9 +92,9 @@ namespace Trivia
 
             MoveCurrentPlayer(roll);
 
-            Console.WriteLine(_players[_currentPlayer]
+            Console.WriteLine(currentPlayer.Name
                     + "'s new location is "
-                    + _places[_currentPlayer]);
+                    + currentPlayer.Place);
             Console.WriteLine("The category is " + CurrentCategory());
             AskQuestion();
 
@@ -105,7 +103,7 @@ namespace Trivia
         private void MoveCurrentPlayer(int roll)
         {
             // le % nbPlaces simule un tour de plateau : on revient à la première case
-            _places[_currentPlayer] = (_places[_currentPlayer] + roll) % nbPlaces;
+            currentPlayer.Place = (currentPlayer.Place + roll) % nbPlaces;
         }
 
         private void AskQuestion()
@@ -137,7 +135,7 @@ namespace Trivia
 
         private string CurrentCategory()
         {
-            int place = _places[_currentPlayer] % nbQuestionTypes;
+            int place = currentPlayer.Place % nbQuestionTypes;
             switch(place)
             {
                 case 0:
@@ -154,17 +152,17 @@ namespace Trivia
 
         public bool WasCorrectlyAnswered()
         {
-            if (_inPenaltyBox[_currentPlayer] && !_isGettingOutOfPenaltyBox)
+            if (currentPlayer.IsInPenaltyBox && !_isGettingOutOfPenaltyBox)
             {
                 SetNextPlayer();
                 return true;
             }
 
             Console.WriteLine("Answer was correct!!!!");
-            _purses[_currentPlayer]++;
-            Console.WriteLine(_players[_currentPlayer]
+            currentPlayer.Purse++;
+            Console.WriteLine(currentPlayer.Name
                     + " now has "
-                    + _purses[_currentPlayer]
+                    + currentPlayer.Purse
                     + " Gold Coins.");
 
             var winner = DidPlayerWin();
@@ -184,8 +182,8 @@ namespace Trivia
         public bool WrongAnswer()
         {
             Console.WriteLine("Question was incorrectly answered");
-            Console.WriteLine(_players[_currentPlayer] + " was sent to the penalty box");
-            _inPenaltyBox[_currentPlayer] = true;
+            Console.WriteLine(currentPlayer.Name + " was sent to the penalty box");
+            currentPlayer.IsInPenaltyBox = true;
 
             SetNextPlayer();
             return true;
@@ -197,7 +195,7 @@ namespace Trivia
             // la condition de victoire est bien d'avoir nbCoinsToWin pièces
             // il faut inverser l'ancienne logique pour être cohérent
             // car le GameRunner attend un "not a winner"
-            return _purses[_currentPlayer] == nbCoinsToWin;
+            return currentPlayer.Purse == nbCoinsToWin;
         }
     }
 
