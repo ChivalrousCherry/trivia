@@ -6,12 +6,17 @@ namespace Trivia
 {
     public class Game
     {
+        readonly int minPlayer = 2;
+        readonly int maxPlayer = 6;
+        readonly int nbQuestions = 50;
+        readonly int nbPlaces = 12;
+        readonly int nbCoinsToWin = 6;
         private readonly List<string> _players = new List<string>();
 
-        private readonly int[] _places = new int[6];
-        private readonly int[] _purses = new int[6];
+        private readonly int[] _places;
+        private readonly int[] _purses;
 
-        private readonly bool[] _inPenaltyBox = new bool[6];
+        private readonly bool[] _inPenaltyBox;
 
         private readonly LinkedList<string> _popQuestions = new LinkedList<string>();
         private readonly LinkedList<string> _scienceQuestions = new LinkedList<string>();
@@ -23,7 +28,11 @@ namespace Trivia
 
         public Game()
         {
-            for (var i = 0; i < 50; i++)
+            _places = new int[maxPlayer];
+            _purses = new int[maxPlayer];
+            _inPenaltyBox = new bool[maxPlayer];
+
+            for (var i = 0; i < nbQuestions; i++)
             {
                 _popQuestions.AddLast("Pop Question " + i);
                 _scienceQuestions.AddLast(("Science Question " + i));
@@ -39,7 +48,7 @@ namespace Trivia
 
         public bool IsPlayable()
         {
-            return (HowManyPlayers() >= 2);
+            return (HowManyPlayers() >= minPlayer);
         }
 
         public bool Add(string playerName)
@@ -72,7 +81,7 @@ namespace Trivia
 
                     Console.WriteLine(_players[_currentPlayer] + " is getting out of the penalty box");
                     _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                    if (_places[_currentPlayer] > 11) _places[_currentPlayer] = _places[_currentPlayer] - 12;
+                    if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
 
                     Console.WriteLine(_players[_currentPlayer]
                             + "'s new location is "
@@ -89,7 +98,7 @@ namespace Trivia
             else
             {
                 _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                if (_places[_currentPlayer] > 11) _places[_currentPlayer] = _places[_currentPlayer] - 12;
+                if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
 
                 Console.WriteLine(_players[_currentPlayer]
                         + "'s new location is "
@@ -194,7 +203,7 @@ namespace Trivia
 
         private bool DidPlayerWin()
         {
-            return !(_purses[_currentPlayer] == 6);
+            return !(_purses[_currentPlayer] == nbCoinsToWin);
         }
     }
 
