@@ -11,36 +11,26 @@ namespace Trivia
         readonly int nbQuestions = 50;
         readonly int nbPlaces = 12;
         readonly int nbCoinsToWin = 6;
-        readonly int nbQuestionTypes = 4;
         private readonly List<Player> _players = new();
 
-        const string popType = "Pop";
-        private readonly LinkedList<string> _popQuestions = new();
-        const string scienceType = "Science";
-        private readonly LinkedList<string> _scienceQuestions = new();
-        const string sportsType = "Sports";
-        private readonly LinkedList<string> _sportsQuestions = new();
-        const string rockType = "Rock";
-        private readonly LinkedList<string> _rockQuestions = new();
-
+        List<string> questionCategories = new List<string>
+        {
+            "Pop",
+            "Science",
+            "Sports",
+            "Rock"
+        };
+        LinkedList<Question> questions = new();
         private int _currentPlayer;
-        private Player currentPlayer;
+        private Player currentPlayer = new("");
         private bool _isGettingOutOfPenaltyBox;
 
         public Game()
         {
-            for (var i = 0; i < nbQuestions; i++)
+            questionCategories.ForEach(delegate (string category)
             {
-                _popQuestions.AddLast(CreateQuestion(popType, i));
-                _scienceQuestions.AddLast(CreateQuestion(scienceType, i));
-                _sportsQuestions.AddLast(CreateQuestion(sportsType, i));
-                _rockQuestions.AddLast(CreateQuestion(rockType, i));
-            }
-        }
-
-        public string CreateQuestion(string type, int index)
-        {
-            return type + " Question " + index;
+                questions.AddLast(new Question(category, nbQuestions));
+            });
         }
 
         public bool IsPlayable()
@@ -72,18 +62,11 @@ namespace Trivia
 
         public void Roll(int roll)
         {
-            currentPlayer = _players[_currentPlayer];
-            Console.WriteLine(currentPlayer.Name + " is the current player");
-            Console.WriteLine("They have rolled a " + roll);
-            bool canGetOut = roll % 2 != 0;
+            GetCurrentPlayer(roll);
 
             if (currentPlayer.IsInPenaltyBox)
             {
-                _isGettingOutOfPenaltyBox = roll % 2 != 0;
-                string negation = _isGettingOutOfPenaltyBox ? "" : "not ";
-                Console.WriteLine(currentPlayer.Name + " is " 
-                    + negation 
-                    + "getting out of the penalty box");
+                _isGettingOutOfPenaltyBox = CanPlayerGetOutOfPenaltyBox(roll);
                 if (!_isGettingOutOfPenaltyBox)
                 {
                     return;
@@ -92,62 +75,44 @@ namespace Trivia
 
             MoveCurrentPlayer(roll);
 
-            Console.WriteLine(currentPlayer.Name
-                    + "'s new location is "
-                    + currentPlayer.Place);
-            Console.WriteLine("The category is " + CurrentCategory());
             AskQuestion();
 
+        }
+
+        private bool CanPlayerGetOutOfPenaltyBox(int roll)
+        {
+            bool canGetOut = roll % 2 != 0;
+            string negation = canGetOut ? "" : "not ";
+            Console.WriteLine(currentPlayer.Name + " is "
+                + negation
+                + "getting out of the penalty box");
+            return canGetOut;
+        }
+
+        private void GetCurrentPlayer(int roll)
+        {
+            currentPlayer = _players[_currentPlayer];
+            Console.WriteLine(currentPlayer.Name + " is the current player");
+            Console.WriteLine("They have rolled a " + roll);
         }
 
         private void MoveCurrentPlayer(int roll)
         {
             // le % nbPlaces simule un tour de plateau : on revient à la première case
             currentPlayer.Place = (currentPlayer.Place + roll) % nbPlaces;
+
+            Console.WriteLine(currentPlayer.Name
+                + "'s new location is "
+                + currentPlayer.Place);
         }
 
         private void AskQuestion()
         {
-            string currentCategory = CurrentCategory();
-            // TODO: créer de la gestion de question pour simplifier ici
-            switch(currentCategory)
-            {
-                case popType:
-                    AskQuestionOfType(_popQuestions);
-                    break;
-                case scienceType:
-                    AskQuestionOfType(_scienceQuestions);
-                    break;
-                case sportsType:
-                    AskQuestionOfType(_sportsQuestions);
-                    break;
-                case rockType:
-                    AskQuestionOfType(_rockQuestions);
-                    break;
-            }
-        }
-
-        private void AskQuestionOfType(LinkedList<string> questions)
-        {
-            Console.WriteLine(questions.First());
-            questions.RemoveFirst();
-        }
-
-        private string CurrentCategory()
-        {
-            int place = currentPlayer.Place % nbQuestionTypes;
-            switch(place)
-            {
-                case 0:
-                    return popType;
-                case 1:
-                    return scienceType;
-                case 2:
-                    return sportsType;
-                default:
-                    return rockType;
-
-            }
+            // calcule quelle est la catégorie de la case du joueur
+            int place = currentPlayer.Place % questionCategories.Count;
+            Question currentQuestion = questions.ElementAt(place);
+            Console.WriteLine("The category is " + currentQuestion.Type);
+            Console.WriteLine(currentQuestion.AskQuestion());
         }
 
         public bool WasCorrectlyAnswered()
