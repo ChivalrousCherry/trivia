@@ -12,17 +12,21 @@ namespace Trivia
         readonly int nbPlaces = 12;
         readonly int nbCoinsToWin = 6;
         readonly int nbQuestionTypes = 4;
-        private readonly List<string> _players = new List<string>();
+        private readonly List<string> _players = new();
 
         private readonly int[] _places;
         private readonly int[] _purses;
 
         private readonly bool[] _inPenaltyBox;
 
-        private readonly LinkedList<string> _popQuestions = new LinkedList<string>();
-        private readonly LinkedList<string> _scienceQuestions = new LinkedList<string>();
-        private readonly LinkedList<string> _sportsQuestions = new LinkedList<string>();
-        private readonly LinkedList<string> _rockQuestions = new LinkedList<string>();
+        const string popType = "Pop";
+        private readonly LinkedList<string> _popQuestions = new();
+        const string scienceType = "Science";
+        private readonly LinkedList<string> _scienceQuestions = new();
+        const string sportsType = "Sports";
+        private readonly LinkedList<string> _sportsQuestions = new();
+        const string rockType = "Rock";
+        private readonly LinkedList<string> _rockQuestions = new();
 
         private int _currentPlayer;
         private bool _isGettingOutOfPenaltyBox;
@@ -35,10 +39,10 @@ namespace Trivia
 
             for (var i = 0; i < nbQuestions; i++)
             {
-                _popQuestions.AddLast(CreateQuestion("Pop", i));
-                _scienceQuestions.AddLast(CreateQuestion("Science", i));
-                _sportsQuestions.AddLast(CreateQuestion("Sports", i));
-                _rockQuestions.AddLast(CreateQuestion("Rock", i));
+                _popQuestions.AddLast(CreateQuestion(popType, i));
+                _scienceQuestions.AddLast(CreateQuestion(scienceType, i));
+                _sportsQuestions.AddLast(CreateQuestion(sportsType, i));
+                _rockQuestions.AddLast(CreateQuestion(rockType, i));
             }
         }
 
@@ -110,16 +114,16 @@ namespace Trivia
             // TODO: créer de la gestion de question pour simplifier ici
             switch(currentCategory)
             {
-                case "Pop":
+                case popType:
                     AskQuestionOfType(_popQuestions);
                     break;
-                case "Science":
+                case scienceType:
                     AskQuestionOfType(_scienceQuestions);
                     break;
-                case "Sports":
+                case sportsType:
                     AskQuestionOfType(_sportsQuestions);
                     break;
-                case "Rock":
+                case rockType:
                     AskQuestionOfType(_rockQuestions);
                     break;
             }
@@ -137,13 +141,13 @@ namespace Trivia
             switch(place)
             {
                 case 0:
-                    return "Pop";
+                    return popType;
                 case 1:
-                    return "Science";
+                    return scienceType;
                 case 2:
-                    return "Sports";
+                    return sportsType;
                 default:
-                    return "Rock";
+                    return rockType;
 
             }
         }
