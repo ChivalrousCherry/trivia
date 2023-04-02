@@ -166,7 +166,7 @@ namespace Trivia
             var winner = DidPlayerWin();
             SetNextPlayer();
 
-            return winner;
+            return !winner;
 
         }
 
@@ -190,7 +190,10 @@ namespace Trivia
 
         private bool DidPlayerWin()
         {
-            return !(_purses[_currentPlayer] == nbCoinsToWin);
+            // la condition de victoire est bien d'avoir nbCoinsToWin pièces
+            // il faut inverser l'ancienne logique pour être cohérent
+            // car le GameRunner attend un "not a winner"
+            return _purses[_currentPlayer] == nbCoinsToWin;
         }
     }
 
