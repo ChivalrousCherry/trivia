@@ -14,7 +14,7 @@ namespace Trivia
             aGame.Add("Pat");
             aGame.Add("Sue");
 
-            var rand = new Random();
+            var rand = new Random(3);
 
             do
             {

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Trivia": {
+      "commandName": "Project",
+      "commandLineArgs": "> C:\\Users\\celia\\source\\repos\\trivia\\C#\\Trivia\\Tests\\resource\\output.txt"
+    }
+  }
+}
