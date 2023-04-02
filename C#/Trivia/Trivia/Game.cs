@@ -11,6 +11,7 @@ namespace Trivia
         readonly int nbQuestions = 50;
         readonly int nbPlaces = 12;
         readonly int nbCoinsToWin = 6;
+        readonly int nbQuestionTypes = 4;
         private readonly List<string> _players = new List<string>();
 
         private readonly int[] _places;
@@ -51,7 +52,8 @@ namespace Trivia
             return (HowManyPlayers() >= minPlayer);
         }
 
-        public bool Add(string playerName)
+        // on peut supprimer le type de retour bool qui n'est jamais utilisé
+        public void Add(string playerName)
         {
             _players.Add(playerName);
             _places[HowManyPlayers()] = 0;
@@ -60,7 +62,6 @@ namespace Trivia
 
             Console.WriteLine(playerName + " was added");
             Console.WriteLine("They are player number " + _players.Count);
-            return true;
         }
 
         public int HowManyPlayers()
@@ -80,7 +81,7 @@ namespace Trivia
                     _isGettingOutOfPenaltyBox = true;
 
                     Console.WriteLine(_players[_currentPlayer] + " is getting out of the penalty box");
-                    moveCurrentPlayer(roll);
+                    MoveCurrentPlayer(roll);
 
                     Console.WriteLine(_players[_currentPlayer]
                             + "'s new location is "
@@ -96,7 +97,7 @@ namespace Trivia
             }
             else
             {
-                moveCurrentPlayer(roll);
+                MoveCurrentPlayer(roll);
 
                 Console.WriteLine(_players[_currentPlayer]
                         + "'s new location is "
@@ -106,48 +107,54 @@ namespace Trivia
             }
         }
 
-        private void moveCurrentPlayer(int roll)
+        private void MoveCurrentPlayer(int roll)
         {
-            _places[_currentPlayer] = _places[_currentPlayer] + roll;
-            if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
+            // le % nbPlaces simule un tour de plateau : on revient à la première case
+            _places[_currentPlayer] = (_places[_currentPlayer] + roll) % nbPlaces;
         }
 
         private void AskQuestion()
         {
-            if (CurrentCategory() == "Pop")
+            string currentCategory = CurrentCategory();
+            // TODO: créer de la gestion de question pour simplifier ici
+            switch(currentCategory)
             {
-                Console.WriteLine(_popQuestions.First());
-                _popQuestions.RemoveFirst();
+                case "Pop":
+                    AskQuestionOfType(_popQuestions);
+                    break;
+                case "Science":
+                    AskQuestionOfType(_scienceQuestions);
+                    break;
+                case "Sports":
+                    AskQuestionOfType(_sportsQuestions);
+                    break;
+                case "Rock":
+                    AskQuestionOfType(_rockQuestions);
+                    break;
             }
-            if (CurrentCategory() == "Science")
-            {
-                Console.WriteLine(_scienceQuestions.First());
-                _scienceQuestions.RemoveFirst();
-            }
-            if (CurrentCategory() == "Sports")
-            {
-                Console.WriteLine(_sportsQuestions.First());
-                _sportsQuestions.RemoveFirst();
-            }
-            if (CurrentCategory() == "Rock")
-            {
-                Console.WriteLine(_rockQuestions.First());
-                _rockQuestions.RemoveFirst();
-            }
+        }
+
+        private void AskQuestionOfType(LinkedList<string> questions)
+        {
+            Console.WriteLine(questions.First());
+            questions.RemoveFirst();
         }
 
         private string CurrentCategory()
         {
-            if (_places[_currentPlayer] == 0) return "Pop";
-            if (_places[_currentPlayer] == 4) return "Pop";
-            if (_places[_currentPlayer] == 8) return "Pop";
-            if (_places[_currentPlayer] == 1) return "Science";
-            if (_places[_currentPlayer] == 5) return "Science";
-            if (_places[_currentPlayer] == 9) return "Science";
-            if (_places[_currentPlayer] == 2) return "Sports";
-            if (_places[_currentPlayer] == 6) return "Sports";
-            if (_places[_currentPlayer] == 10) return "Sports";
-            return "Rock";
+            int place = _places[_currentPlayer] % nbQuestionTypes;
+            switch(place)
+            {
+                case 0:
+                    return "Pop";
+                case 1:
+                    return "Science";
+                case 2:
+                    return "Sports";
+                default:
+                    return "Rock";
+
+            }
         }
 
         public bool WasCorrectlyAnswered()
@@ -164,13 +171,13 @@ namespace Trivia
                             + " Gold Coins.");
 
                     var winner = DidPlayerWin();
-                    setNextPlayer();
+                    SetNextPlayer();
 
                     return winner;
                 }
                 else
                 {
-                    setNextPlayer();
+                    SetNextPlayer();
                     return true;
                 }
             }
@@ -184,16 +191,17 @@ namespace Trivia
                         + " Gold Coins.");
 
                 var winner = DidPlayerWin();
-                setNextPlayer();
+                SetNextPlayer();
 
                 return winner;
             }
         }
 
-        private void setNextPlayer()
+        private void SetNextPlayer()
         {
-            _currentPlayer++;
-            if (_currentPlayer == _players.Count) _currentPlayer = 0;
+            // ++_currentPlayer pour augmenter la valeur avant le calcul
+            // le modulo fonctionne comme pour le plateau : si on a dépassé le dernier joueur on revient au premier
+            _currentPlayer = ++_currentPlayer % _players.Count;
         }
 
         public bool WrongAnswer()
@@ -202,8 +210,7 @@ namespace Trivia
             Console.WriteLine(_players[_currentPlayer] + " was sent to the penalty box");
             _inPenaltyBox[_currentPlayer] = true;
 
-            _currentPlayer++;
-            if (_currentPlayer == _players.Count) _currentPlayer = 0;
+            SetNextPlayer();
             return true;
         }
 
