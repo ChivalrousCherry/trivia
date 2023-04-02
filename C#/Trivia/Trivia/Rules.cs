@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Trivia
+﻿namespace Trivia
 {
     public class Rules
     {
@@ -14,7 +8,7 @@ namespace Trivia
         const int nbPlaces = 12;
         const int nbCoinsToWin = 6;
 
-        readonly List<string> questionCategories = new List<string>
+        readonly List<string> questionCategories = new()
         {
             "Pop",
             "Science",
