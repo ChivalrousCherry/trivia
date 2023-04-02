@@ -34,16 +34,16 @@ namespace Trivia
 
             for (var i = 0; i < nbQuestions; i++)
             {
-                _popQuestions.AddLast("Pop Question " + i);
-                _scienceQuestions.AddLast(("Science Question " + i));
-                _sportsQuestions.AddLast(("Sports Question " + i));
-                _rockQuestions.AddLast(CreateRockQuestion(i));
+                _popQuestions.AddLast(CreateQuestion("Pop", i));
+                _scienceQuestions.AddLast(CreateQuestion("Science", i));
+                _sportsQuestions.AddLast(CreateQuestion("Sports", i));
+                _rockQuestions.AddLast(CreateQuestion("Rock", i));
             }
         }
 
-        public string CreateRockQuestion(int index)
+        public string CreateQuestion(string type, int index)
         {
-            return "Rock Question " + index;
+            return type + " Question " + index;
         }
 
         public bool IsPlayable()
@@ -80,8 +80,7 @@ namespace Trivia
                     _isGettingOutOfPenaltyBox = true;
 
                     Console.WriteLine(_players[_currentPlayer] + " is getting out of the penalty box");
-                    _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                    if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
+                    moveCurrentPlayer(roll);
 
                     Console.WriteLine(_players[_currentPlayer]
                             + "'s new location is "
@@ -97,8 +96,7 @@ namespace Trivia
             }
             else
             {
-                _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
+                moveCurrentPlayer(roll);
 
                 Console.WriteLine(_players[_currentPlayer]
                         + "'s new location is "
@@ -106,6 +104,12 @@ namespace Trivia
                 Console.WriteLine("The category is " + CurrentCategory());
                 AskQuestion();
             }
+        }
+
+        private void moveCurrentPlayer(int roll)
+        {
+            _places[_currentPlayer] = _places[_currentPlayer] + roll;
+            if (_places[_currentPlayer] >= nbPlaces) _places[_currentPlayer] = _places[_currentPlayer] - nbPlaces;
         }
 
         private void AskQuestion()
@@ -160,15 +164,13 @@ namespace Trivia
                             + " Gold Coins.");
 
                     var winner = DidPlayerWin();
-                    _currentPlayer++;
-                    if (_currentPlayer == _players.Count) _currentPlayer = 0;
+                    setNextPlayer();
 
                     return winner;
                 }
                 else
                 {
-                    _currentPlayer++;
-                    if (_currentPlayer == _players.Count) _currentPlayer = 0;
+                    setNextPlayer();
                     return true;
                 }
             }
@@ -182,11 +184,16 @@ namespace Trivia
                         + " Gold Coins.");
 
                 var winner = DidPlayerWin();
-                _currentPlayer++;
-                if (_currentPlayer == _players.Count) _currentPlayer = 0;
+                setNextPlayer();
 
                 return winner;
             }
+        }
+
+        private void setNextPlayer()
+        {
+            _currentPlayer++;
+            if (_currentPlayer == _players.Count) _currentPlayer = 0;
         }
 
         public bool WrongAnswer()
